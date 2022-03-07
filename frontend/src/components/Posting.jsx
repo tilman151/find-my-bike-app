@@ -10,43 +10,27 @@ import {
 } from "@chakra-ui/react";
 import {SearchIcon} from "@chakra-ui/icons"
 
-import {
-  PostingsContextType,
-  IPosting,
-  PostingQueryType,
-  IPredictions
-} from '../@types/posting';
 
-const PostingsContext = React.createContext<PostingsContextType | undefined>(undefined);
-
-
-function usePostingsContext() {
-  const context = React.useContext(PostingsContext)
-  if (context === undefined) {
-    throw new Error("usePostingsContext must be within PostingsProvider")
-  }
-
-  return context
-}
+const PostingsContext = React.createContext({});
 
 
 function SearchBar() {
-  const [query, setQuery] = React.useState<PostingQueryType>({bike: "", frame: "", color: ""})
-  const context = usePostingsContext()
+  const [query, setQuery] = React.useState({bike: "", frame: "", color: ""})
+  const context = React.useContext(PostingsContext)
 
-  const handleBikeInput = (event: React.ChangeEvent<HTMLSelectElement>)  => {
+  const handleBikeInput = (event)  => {
     setQuery({...query, bike: event.target.value})
   }
 
-  const handleFrameInput = (event: React.ChangeEvent<HTMLSelectElement>)  => {
+  const handleFrameInput = (event)  => {
     setQuery({...query, frame: event.target.value})
   }
 
-  const handleColorInput = (event: React.ChangeEvent<HTMLSelectElement>)  => {
+  const handleColorInput = (event)  => {
     setQuery({...query, color: event.target.value})
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event) => {
     context.fetchPostings(query)
     event.preventDefault();
   }
@@ -98,7 +82,7 @@ function SearchBar() {
 }
 
 
-const toQueryString = (obj: PostingQueryType): string => {
+const toQueryString = (obj) => {
   const bike = obj.bike ? `bike=${obj.bike}` : "";
   const frame = obj.frame ? `&frame=${obj.frame}` : "";
   const color = obj.color ? `&color=${obj.color}` : "";
@@ -106,13 +90,7 @@ const toQueryString = (obj: PostingQueryType): string => {
 }
 
 
-interface IPostingProps {
-  title: string;
-  prediction: IPredictions;
-}
-
-
-function Posting(props: IPostingProps) {
+function Posting(props) {
   return (
     <Box borderWidth='1px' borderRadius='lg' overflow='hidden' p="0.5rem">
       <HStack>
@@ -133,8 +111,8 @@ function Posting(props: IPostingProps) {
 
 
 export default function Postings() {
-  const [postings, setPostings] = useState<IPosting[]>([])
-  const fetchPostings = async (query: PostingQueryType) => {
+  const [postings, setPostings] = useState([])
+  const fetchPostings = async (query) => {
     const response = await fetch(`https://serene-citadel-42839.herokuapp.com/posting?${toQueryString(query)}`)
     const postings = await response.json()
     setPostings(postings.data)
