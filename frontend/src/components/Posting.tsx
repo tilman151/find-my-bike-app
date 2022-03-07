@@ -135,7 +135,7 @@ function Posting(props: IPostingProps) {
 export default function Postings() {
   const [postings, setPostings] = useState<IPosting[]>([])
   const fetchPostings = async (query: PostingQueryType) => {
-    const response = await fetch(`http://localhost:8000/posting?${toQueryString(query)}`)
+    const response = await fetch(`https://serene-citadel-42839.herokuapp.com/posting?${toQueryString(query)}`)
     const postings = await response.json()
     setPostings(postings.data)
   }
