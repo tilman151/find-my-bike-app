@@ -6,7 +6,12 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-origins = ["http://localhost:3000", "localhost:3000", "https://find-my-bike.netlify.app"]
+origins = [
+    "http://localhost:3000",
+    "localhost:3000",
+    "https://find-my-bike.netlify.app",
+    "https://find-my-bike.krokotsch.eu",
+]
 
 
 app.add_middleware(
