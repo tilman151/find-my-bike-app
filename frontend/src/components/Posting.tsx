@@ -32,7 +32,7 @@ function usePostingsContext() {
 
 function SearchBar() {
   const [query, setQuery] = React.useState<PostingQueryType>({bike: "", frame: "", color: ""})
-  const {postings, fetchPostings} = usePostingsContext()
+  const context = usePostingsContext()
 
   const handleBikeInput = (event: React.ChangeEvent<HTMLSelectElement>)  => {
     setQuery({...query, bike: event.target.value})
@@ -47,7 +47,7 @@ function SearchBar() {
   }
 
   const handleSubmit = (event: React.FormEvent) => {
-    fetchPostings(query)
+    context.fetchPostings(query)
     event.preventDefault();
   }
 
