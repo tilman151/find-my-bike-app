@@ -112,10 +112,18 @@ function Posting(props) {
 }
 
 
+const apiCall = async (endpoint, query) => {
+  const headers = {access_token: process.env.REACT_APP_API_KEY}
+  const queryString = toQueryString(query)
+  const backendUrl = `${process.env.REACT_APP_BACKEND_URL}/${endpoint}?${queryString}`
+  return fetch(backendUrl, {headers})
+}
+
+
 export default function Postings() {
   const [postings, setPostings] = useState([])
   const fetchPostings = async (query) => {
-    const response = await fetch(`https://serene-citadel-42839.herokuapp.com/posting?${toQueryString(query)}`)
+    const response = await apiCall("posting", query)
     const postings = await response.json()
     setPostings(postings.data)
   }
@@ -127,7 +135,8 @@ export default function Postings() {
         <SearchBar/>
         <Stack spacing={5} pl="0.5rem" pr="0.5rem">
           {postings.map((posting) => (
-              <Posting title={posting.title} prediction={posting.prediction}/>
+              <Posting key={posting.title} title={posting.title}
+                       prediction={posting.prediction}/>
           ))}
         </Stack>
       </PostingsContext.Provider>
