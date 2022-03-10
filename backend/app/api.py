@@ -8,6 +8,7 @@ from fastapi.security.api_key import APIKey
 from starlette.responses import RedirectResponse, JSONResponse
 
 from backend.app import security
+from backend.app.models import database
 from backend.app.security import get_api_key
 from backend.app.validation import Prediction, Posting
 
@@ -66,6 +67,16 @@ dummy_postings = [
         }
     ),
 ]
+
+
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
 
 
 @app.get("/", tags=["root"])

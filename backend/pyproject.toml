@@ -8,6 +8,11 @@ authors = ["Tilman Krokotsch <t.krokotsch@gmail.com>"]
 python = "^3.9"
 fastapi = "^0.75.0"
 uvicorn = "^0.17.5"
+SQLAlchemy = "^1.4.32"
+alembic = "^1.7.6"
+psycopg2 = "^2.9.3"
+databases = "^0.5.5"
+asyncpg = "^0.25.0"
 
 [tool.poetry.dev-dependencies]
 black = {extras = ["d"], version = "^22.1.0"}
