@@ -5,15 +5,11 @@ const Header = () => {
     return (
         <Flex
             as="nav"
-            align="center"
-            justify="space-between"
-            wrap="wrap"
+            w="100%"
             padding="1rem"
             border-bottom="1px"
         >
-            <Flex align="center" mr={5}>
-                <Heading as="h1" size="sm" color="#222222">Find My Bike</Heading>
-            </Flex>
+            <Heading as="h1" size="sm" color="gray.900">Find My Bike</Heading>
         </Flex>
     );
 };
