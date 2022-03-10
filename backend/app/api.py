@@ -1,16 +1,16 @@
-from typing import Optional, Callable
+from typing import Optional
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.security.api_key import APIKey
-from starlette.responses import RedirectResponse, JSONResponse
+from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
 
 from backend.app import security
-from backend.app.models import database
+from backend.app.models import database, postings
 from backend.app.security import get_api_key
-from backend.app.validation import Prediction, Posting
+from backend.app.validation import Posting
 
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
@@ -32,60 +32,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-dummy_postings = [
-    Posting(
-        **{
-            "title": "Bike 1",
-            "url": "http://foo.bar",
-            "img_url": "https://i.ebayimg.com/00/s/MTIwMFgxNjAw/z/omYAAOSw-31iIkFH/$_2.JPG",
-            "location": "Hamburg",
-            "prediction": Prediction(
-                **{"bike": "bike", "frame": "trapeze", "color": "black"}
-            ),
-        }
-    ),
-    Posting(
-        **{
-            "title": "Bike 2",
-            "url": "http://foo.bar",
-            "img_url": "https://i.ebayimg.com/00/s/MTIwMFgxNjAw/z/omYAAOSw-31iIkFH/$_2.JPG",
-            "location": "München",
-            "prediction": Prediction(
-                **{"bike": "bike", "frame": "diamond", "color": "white"}
-            ),
-        }
-    ),
-    Posting(
-        **{
-            "title": "Bike 3",
-            "url": "http://foo.bar",
-            "img_url": "https://i.ebayimg.com/00/s/MTIwMFgxNjAw/z/omYAAOSw-31iIkFH/$_2.JPG",
-            "location": "Berlin",
-            "prediction": Prediction(
-                **{"bike": "children", "frame": "low_entry", "color": "green"}
-            ),
-        }
-    ),
-]
-
 
 @app.on_event("startup")
-async def startup():
+async def startup() -> None:
     await database.connect()
 
 
 @app.on_event("shutdown")
-async def shutdown():
+async def shutdown() -> None:
     await database.disconnect()
 
 
 @app.get("/", tags=["root"])
-async def root():
+async def root() -> dict[str, str]:
     return {"message": "This is the Find-My-Bike API"}
 
 
 @app.get("/logout")
-async def logout_and_remove_cookie():
+async def logout_and_remove_cookie() -> RedirectResponse:
     response = RedirectResponse(url="/")
     await security.delete_api_key_cookie(response)
 
@@ -93,7 +57,7 @@ async def logout_and_remove_cookie():
 
 
 @app.get("/openapi.json", tags=["documentation"])
-async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)):
+async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)) -> JSONResponse:
     response = JSONResponse(
         get_openapi(title=TITLE, version=VERSION, routes=app.routes)
     )
@@ -102,7 +66,7 @@ async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)):
 
 
 @app.get("/docs", tags=["documentation"])
-async def get_documentation(api_key: APIKey = Depends(get_api_key)):
+async def get_documentation(api_key: APIKey = Depends(get_api_key)) -> HTMLResponse:
     response = get_swagger_ui_html(openapi_url="/openapi.json", title="docs")
     await security.set_api_key_cookie(response, api_key)
 
@@ -116,22 +80,15 @@ async def get_postings(
     color: Optional[str] = None,
     api_key: APIKey = Depends(get_api_key),
 ) -> dict[str, list[Posting]]:
-    postings = list(filter(query_filter(bike, frame, color), dummy_postings))
+    where_clauses = []
+    if bike is not None:
+        where_clauses.append(postings.c.bike == bike)
+    elif frame is not None:
+        where_clauses.append(postings.c.frame == frame)
+    elif color is not None:
+        where_clauses.append(postings.c.color == color)
+    query = postings.select().where(*where_clauses)
+    fetched_postings = await database.fetch_all(query)
+    fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
 
-    return {"data": postings}
-
-
-def query_filter(
-    bike: Optional[str] = None, frame: Optional[str] = None, color: Optional[str] = None
-) -> Callable:
-    def _filter_fn(posting: Posting) -> bool:
-        if bike is not None and not posting.prediction.bike == bike:
-            return False
-        if frame is not None and not posting.prediction.frame == frame:
-            return False
-        if color is not None and not posting.prediction.color == color:
-            return False
-
-        return True
-
-    return _filter_fn
+    return {"data": fetched_postings}
