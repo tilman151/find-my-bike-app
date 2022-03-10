@@ -36,7 +36,8 @@ dummy_postings = [
         **{
             "title": "Bike 1",
             "url": "http://foo.bar",
-            "img_url": "http://foo.bar/img.jpg",
+            "img_url": "https://i.ebayimg.com/00/s/MTIwMFgxNjAw/z/omYAAOSw-31iIkFH/$_2.JPG",
+            "location": "Hamburg",
             "prediction": Prediction(
                 **{"bike": "bike", "frame": "trapeze", "color": "black"}
             ),
@@ -46,7 +47,8 @@ dummy_postings = [
         **{
             "title": "Bike 2",
             "url": "http://foo.bar",
-            "img_url": "http://foo.bar/img.jpg",
+            "img_url": "https://i.ebayimg.com/00/s/MTIwMFgxNjAw/z/omYAAOSw-31iIkFH/$_2.JPG",
+            "location": "München",
             "prediction": Prediction(
                 **{"bike": "bike", "frame": "diamond", "color": "white"}
             ),
@@ -56,7 +58,8 @@ dummy_postings = [
         **{
             "title": "Bike 3",
             "url": "http://foo.bar",
-            "img_url": "http://foo.bar/img.jpg",
+            "img_url": "https://i.ebayimg.com/00/s/MTIwMFgxNjAw/z/omYAAOSw-31iIkFH/$_2.JPG",
+            "location": "Berlin",
             "prediction": Prediction(
                 **{"bike": "children", "frame": "low_entry", "color": "green"}
             ),

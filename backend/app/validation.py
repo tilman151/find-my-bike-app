@@ -11,4 +11,5 @@ class Posting(BaseModel):
     title: str
     url: str
     img_url: str
+    location: str
     prediction: Prediction
