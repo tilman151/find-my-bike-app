@@ -25,7 +25,10 @@ target_metadata = backend.app.models.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
+db_url = os.environ["DATABASE_URL"]
+if "postgresql" not in db_url:
+    db_url = db_url.replace("postgres", "postgresql")
+config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline():

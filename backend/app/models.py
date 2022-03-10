@@ -4,6 +4,8 @@ import databases
 import sqlalchemy
 
 DATABASE_URL = os.environ["DATABASE_URL"]
+if "postgresql" not in DATABASE_URL:
+    db_url = DATABASE_URL.replace("postgres", "postgresql")
 
 database = databases.Database(DATABASE_URL)
 
