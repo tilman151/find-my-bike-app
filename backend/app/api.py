@@ -10,7 +10,7 @@ from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
 from backend.app import security
 from backend.app.models import database, postings
 from backend.app.security import get_api_key
-from backend.app.validation import Posting
+from backend.app.validation import Posting, GetPostings
 
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
@@ -73,13 +73,13 @@ async def get_documentation(api_key: APIKey = Depends(get_api_key)) -> HTMLRespo
     return response
 
 
-@app.get("/posting", tags=["postings"], response_model=dict[str, list[Posting]])
+@app.get("/posting", tags=["postings"], response_model=GetPostings)
 async def get_postings(
     bike: Optional[str] = None,
     frame: Optional[str] = None,
     color: Optional[str] = None,
     api_key: APIKey = Depends(get_api_key),
-) -> dict[str, list[Posting]]:
+) -> GetPostings:
     where_clauses = []
     if bike is not None:
         where_clauses.append(postings.c.bike == bike)
@@ -91,4 +91,4 @@ async def get_postings(
     fetched_postings = await database.fetch_all(query)
     fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
 
-    return {"data": fetched_postings}
+    return GetPostings(data=fetched_postings)

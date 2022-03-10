@@ -13,3 +13,7 @@ class Posting(BaseModel):
     img_url: str
     location: str
     prediction: Prediction
+
+
+class GetPostings(BaseModel):
+    data: list[Posting]
