@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel
 
 
@@ -12,8 +14,11 @@ class Posting(BaseModel):
     url: str
     img_url: str
     location: str
+    query: str
+    loc_query: str
+    date: datetime.date
     prediction: Prediction
 
 
-class GetPostings(BaseModel):
+class PostingList(BaseModel):
     data: list[Posting]
