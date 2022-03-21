@@ -16,7 +16,7 @@ postings = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("title", sqlalchemy.String),
     sqlalchemy.Column("url", sqlalchemy.String),
-    sqlalchemy.Column("img_url", sqlalchemy.String),
+    sqlalchemy.Column("image_url", sqlalchemy.String),
     sqlalchemy.Column("location", sqlalchemy.String),
     sqlalchemy.Column("query", sqlalchemy.String),
     sqlalchemy.Column("loc_query", sqlalchemy.String),

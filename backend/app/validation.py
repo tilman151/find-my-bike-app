@@ -12,7 +12,7 @@ class Prediction(BaseModel):
 class Posting(BaseModel):
     title: str
     url: str
-    img_url: str
+    image_url: str
     location: str
     query: str
     loc_query: str
