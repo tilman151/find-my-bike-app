@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {
+    AspectRatio,
     Badge,
     Box,
     Button,
@@ -41,51 +42,51 @@ function SearchBar() {
         event.preventDefault();
     }
 
-  return (
-      <form>
-        <HStack pl="0.5rem" pr="0.5rem" pb="0.5rem" h={14}>
-          <Select
-              variant="flushed"
-              placeholder="Select Bike Type"
-              aria-label="Select Bike Type"
-              onChange={handleBikeInput}
-          >
-            <option value="bike">Bike</option>
-            <option value="children">Children Bike</option>
-            <option value="cargo">Cargo Bike</option>
-          </Select>
-          <Select
-              variant="flushed"
-              placeholder="Select Frame"
-              aria-label="Select Frame"
-              onChange={handleFrameInput}
-          >
-            <option value="diamond">Diamond</option>
-            <option value="trapeze">Trapeze</option>
-            <option value="swan_neck">Swan Neck</option>
-            <option value="low_entry">Low Entry</option>
-            <option value="x">X Frame</option>
-            <option value="y">Y Frame</option>
-          </Select>
-          <Select
-              variant="flushed"
-              placeholder="Select Color"
-              aria-label="Select Color"
-              onChange={handleColorInput}
-          >
-            <option value="black">Black</option>
-            <option value="white">White</option>
-            <option value="gray">Gray</option>
-            <option value="blue">Blue</option>
-            <option value="red">Red</option>
-            <option value="yellow">Yellow</option>
-            <option value="green">Green</option>
-          </Select>
-          <IconButton aria-label='Search Postings' icon={<SearchIcon/>}
-                      onClick={handleSubmit}/>
-        </HStack>
-      </form>
-  )
+    return (
+        <form>
+            <HStack pl="0.5rem" pr="0.5rem" pb="0.5rem" h={14}>
+                <Select
+                    variant="flushed"
+                    placeholder="Select Bike Type"
+                    aria-label="Select Bike Type"
+                    onChange={handleBikeInput}
+                >
+                    <option value="bike">Bike</option>
+                    <option value="children">Children Bike</option>
+                    <option value="cargo">Cargo Bike</option>
+                </Select>
+                <Select
+                    variant="flushed"
+                    placeholder="Select Frame"
+                    aria-label="Select Frame"
+                    onChange={handleFrameInput}
+                >
+                    <option value="diamond">Diamond</option>
+                    <option value="trapeze">Trapeze</option>
+                    <option value="swan_neck">Swan Neck</option>
+                    <option value="low_entry">Low Entry</option>
+                    <option value="x">X Frame</option>
+                    <option value="y">Y Frame</option>
+                </Select>
+                <Select
+                    variant="flushed"
+                    placeholder="Select Color"
+                    aria-label="Select Color"
+                    onChange={handleColorInput}
+                >
+                    <option value="black">Black</option>
+                    <option value="white">White</option>
+                    <option value="gray">Gray</option>
+                    <option value="blue">Blue</option>
+                    <option value="red">Red</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="green">Green</option>
+                </Select>
+                <IconButton aria-label='Search Postings' icon={<SearchIcon/>}
+                            onClick={handleSubmit}/>
+            </HStack>
+        </form>
+    )
 }
 
 
@@ -122,7 +123,7 @@ function FeedbackButtons() {
         <Center>
             <Stack>
                 <Button colorScheme="teal" variant="outline"
-                        onClick={handleMyBikeClick}>My Bike</Button>
+                        onClick={handleMyBikeClick}>That's my Bike</Button>
                 <Button colorScheme="red" variant="ghost"
                         onClick={handleThisIsWrongClick}>This is Wrong</Button>
             </Stack>
@@ -134,6 +135,13 @@ function FeedbackButtons() {
 function Posting({posting, prediction}) {
     const handleClick = (event) => {
         window.open(posting.url, '_blank').focus();
+    }
+
+    let thumbnail_url
+    if (posting.image_url.includes("$_59.JPG")) {
+        thumbnail_url = posting.image_url.replace("$_59.JPG", "$_2.JPG")
+    } else {
+        thumbnail_url = posting.image_url
     }
 
     return (
@@ -148,8 +156,9 @@ function Posting({posting, prediction}) {
              onClick={handleClick}
         >
             <Flex>
-                <Image h="100%" minH="100px" borderRadius='md' src={posting.image_url}
-                       alt="Bike"/>
+                <AspectRatio w='200px' ratio={4 / 3}>
+                    <Image borderRadius='md' src={thumbnail_url} alt="Bike Thumbnail"/>
+                </AspectRatio>
                 <Divider orientation="vertical" m="0.5rem"/>
                 <Stack spacing="0.5rem">
                     <Heading size="lg">{posting.title}</Heading>
