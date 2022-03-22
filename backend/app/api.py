@@ -85,9 +85,9 @@ async def get_postings(
     where_clauses = []
     if bike is not None:
         where_clauses.append(postings.c.bike == bike)
-    elif frame is not None:
+    if frame is not None:
         where_clauses.append(postings.c.frame == frame)
-    elif color is not None:
+    if color is not None:
         where_clauses.append(postings.c.color == color)
     query = postings.select().where(*where_clauses).offset(skip).limit(limit)
     fetched_postings = await database.fetch_all(query)
