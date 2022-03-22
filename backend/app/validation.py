@@ -30,3 +30,8 @@ class Posting(IncomingPosting):
 
 class PostingList(BaseModel):
     data: list[Posting]
+
+
+class Correction(BaseModel):
+    posting_id: int
+    correction: Prediction

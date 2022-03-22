@@ -1,16 +1,18 @@
 from typing import Optional
 
-from fastapi import Depends, FastAPI
+from asyncpg import ForeignKeyViolationError
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.security.api_key import APIKey
 from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_201_CREATED
 
+from backend.app import models
 from backend.app import security
-from backend.app.models import database, postings
 from backend.app.security import get_api_key, get_admin_key
-from backend.app.validation import Posting, PostingList, IncomingPostingList
+from backend.app.validation import Posting, PostingList, IncomingPostingList, Correction
 
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
@@ -35,12 +37,12 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup() -> None:
-    await database.connect()
+    await models.database.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
-    await database.disconnect()
+    await models.database.disconnect()
 
 
 @app.get("/", tags=["root"])
@@ -84,19 +86,19 @@ async def get_postings(
 ) -> PostingList:
     where_clauses = []
     if bike is not None:
-        where_clauses.append(postings.c.bike == bike)
+        where_clauses.append(models.postings.c.bike == bike)
     if frame is not None:
-        where_clauses.append(postings.c.frame == frame)
+        where_clauses.append(models.postings.c.frame == frame)
     if color is not None:
-        where_clauses.append(postings.c.color == color)
-    query = postings.select().where(*where_clauses).offset(skip).limit(limit)
-    fetched_postings = await database.fetch_all(query)
+        where_clauses.append(models.postings.c.color == color)
+    query = models.postings.select().where(*where_clauses).offset(skip).limit(limit)
+    fetched_postings = await models.database.fetch_all(query)
     fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
 
     return PostingList(data=fetched_postings)
 
 
-@app.post("/posting", tags=["postings"])
+@app.post("/posting", tags=["postings"], status_code=HTTP_201_CREATED)
 async def add_postings(
     in_postings: IncomingPostingList, api_key: APIKey = Depends(get_admin_key)
 ) -> None:
@@ -105,11 +107,19 @@ async def add_postings(
         processed_posting = posting.dict(exclude={"prediction"})
         processed_posting.update(posting.prediction.dict())
         processed_postings.append(processed_posting)
-    await database.execute_many(postings.insert(), processed_postings)
+    await models.database.execute_many(models.postings.insert(), processed_postings)
 
 
-# @app.post("/correction", tags=["corrections"])
-# async def add_correction(
-#         correction: Correction, api_key: APIKey = Depends(get_api_key)
-# ):
-#     pass
+@app.post("/correction", tags=["corrections"], status_code=HTTP_201_CREATED)
+async def add_correction(
+    correction: Correction, api_key: APIKey = Depends(get_api_key)
+):
+    processed_correction = correction.dict(exclude={"correction"})
+    processed_correction.update(correction.correction)
+    try:
+        await models.database.execute(models.corrections.insert(), processed_correction)
+    except ForeignKeyViolationError:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Posting with ID {correction.posting_id} not found",
+        )

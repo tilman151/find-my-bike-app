@@ -1,7 +1,7 @@
 import os
 
 import databases
-import sqlalchemy
+import sqlalchemy as sa
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 if "postgresql" not in DATABASE_URL:
@@ -9,19 +9,30 @@ if "postgresql" not in DATABASE_URL:
 
 database = databases.Database(DATABASE_URL)
 
-metadata = sqlalchemy.MetaData()
-postings = sqlalchemy.Table(
+metadata = sa.MetaData()
+
+postings = sa.Table(
     "postings",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("title", sqlalchemy.String),
-    sqlalchemy.Column("url", sqlalchemy.String),
-    sqlalchemy.Column("image_url", sqlalchemy.String),
-    sqlalchemy.Column("location", sqlalchemy.String),
-    sqlalchemy.Column("query", sqlalchemy.String),
-    sqlalchemy.Column("loc_query", sqlalchemy.String),
-    sqlalchemy.Column("date", sqlalchemy.Date),
-    sqlalchemy.Column("bike", sqlalchemy.String),
-    sqlalchemy.Column("frame", sqlalchemy.String),
-    sqlalchemy.Column("color", sqlalchemy.String),
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("title", sa.String),
+    sa.Column("url", sa.String),
+    sa.Column("image_url", sa.String),
+    sa.Column("location", sa.String),
+    sa.Column("query", sa.String),
+    sa.Column("loc_query", sa.String),
+    sa.Column("date", sa.Date),
+    sa.Column("bike", sa.String),
+    sa.Column("frame", sa.String),
+    sa.Column("color", sa.String),
+)
+
+corrections = sa.Table(
+    "corrections",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("posting_id", sa.ForeignKey("postings.id"), nullable=False),
+    sa.Column("bike", sa.String),
+    sa.Column("frame", sa.String),
+    sa.Column("color", sa.String),
 )
