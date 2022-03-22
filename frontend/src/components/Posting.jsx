@@ -11,17 +11,20 @@ import {
     Image,
     Select,
     Spacer,
+    Spinner,
     Stack,
 } from "@chakra-ui/react";
 import {SearchIcon} from "@chakra-ui/icons"
+import InfiniteScroll from "react-infinite-scroll-component";
 
 
 const PostingsContext = React.createContext({});
+const QueryContext = React.createContext({})
 
 
 function SearchBar() {
-    const [query, setQuery] = React.useState({bike: "", frame: "", color: ""})
-    const context = React.useContext(PostingsContext)
+    const {query, setQuery} = React.useContext(QueryContext)
+    const {postings, fetchPostings} = React.useContext(PostingsContext)
 
     const handleBikeInput = (event) => {
         setQuery({...query, bike: event.target.value})
@@ -36,7 +39,7 @@ function SearchBar() {
     }
 
     const handleSubmit = (event) => {
-        context.fetchPostings(query)
+        fetchPostings(query)
         event.preventDefault();
     }
 
@@ -92,16 +95,26 @@ const toQueryString = (obj) => {
     const bike = obj.bike ? `bike=${obj.bike}` : "";
     const frame = obj.frame ? `&frame=${obj.frame}` : "";
     const color = obj.color ? `&color=${obj.color}` : "";
-    return bike + frame + color
+    const skip = obj.skip ? `&skip=${obj.skip}` : "";
+    const limit = obj.limit ? `&limit=${obj.limit}` : "";
+    return bike + frame + color + skip + limit
 }
 
 
 function Prediction({prediction: {bike, frame, color}}) {
+    const {query, setQuery} = React.useContext(QueryContext)
+
     return (
         <HStack>
-            <Badge>{bike}</Badge>
-            <Badge>{frame}</Badge>
-            <Badge>{color}</Badge>
+            <Badge colorScheme={(query.bike === bike) ? "green" : "gray"}>
+                {bike}
+            </Badge>
+            <Badge colorScheme={(query.frame === frame) ? "green" : "gray"}>
+                {frame}
+            </Badge>
+            <Badge colorScheme={(query.color === color) ? "green" : "gray"}>
+                {color}
+            </Badge>
         </HStack>
     )
 }
@@ -170,6 +183,15 @@ function Posting({posting, prediction}) {
 }
 
 
+const Loading = () => {
+    return (
+        <Center p="1rem">
+            <Spinner/>
+        </Center>
+    )
+}
+
+
 const apiCall = async (endpoint, query) => {
     const headers = {access_token: process.env.REACT_APP_API_KEY}
     const queryString = toQueryString(query)
@@ -180,23 +202,36 @@ const apiCall = async (endpoint, query) => {
 
 export default function Postings({marginTop}) {
     const [postings, setPostings] = useState([])
-    const fetchPostings = async (query) => {
-        const response = await apiCall("posting", query)
-        const postings = await response.json()
-        setPostings(postings.data)
+    const [query, setQuery] = React.useState({bike: "", frame: "", color: ""})
+    const fetchPostings = async (query, skip = null, limit = null) => {
+        const extendedQuery = {...query, skip: skip, limit: limit}
+        const response = await apiCall("posting", extendedQuery)
+        const fetched = await response.json()
+        setPostings(fetched.data)
     }
+
+    const fetchMorePostings = async () => {
+        const extendedQuery = {...query, skip: postings.length, limit: null}
+        const response = await apiCall("posting", extendedQuery)
+        const fetched = await response.json()
+        setPostings(postings.concat(fetched.data))
+    }
+
     useEffect(() => {
         fetchPostings({bike: "", frame: "", color: ""})
     }, [])
     return (
-        <PostingsContext.Provider value={{postings, fetchPostings}}>
-            <SearchBar/>
-            <Stack spacing="0.5rem" pl="0.5rem" pr="0.5rem">
-                {postings.map((posting) => (
-                    <Posting key={posting.title} posting={posting}
-                             prediction={posting.prediction}/>
-                ))}
-            </Stack>
-        </PostingsContext.Provider>
+        <QueryContext.Provider value={{query, setQuery}}>
+            <PostingsContext.Provider value={{postings, fetchPostings}}>
+                <SearchBar/>
+                <InfiniteScroll dataLength={postings.length} next={fetchMorePostings}
+                                hasMore={true} loader={<Loading/>}>
+                    {postings.map((posting) => (
+                        <Posting key={posting.title} posting={posting}
+                                 prediction={posting.prediction}/>
+                    ))}
+                </InfiniteScroll>
+            </PostingsContext.Provider>
+        </QueryContext.Provider>
     )
 }
