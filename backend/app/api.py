@@ -10,7 +10,7 @@ from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
 from backend.app import security
 from backend.app.models import database, postings
 from backend.app.security import get_api_key, get_admin_key
-from backend.app.validation import Posting, PostingList
+from backend.app.validation import Posting, PostingList, IncomingPostingList
 
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
@@ -98,7 +98,7 @@ async def get_postings(
 
 @app.post("/posting", tags=["postings"])
 async def add_postings(
-    in_postings: PostingList, api_key: APIKey = Depends(get_admin_key)
+    in_postings: IncomingPostingList, api_key: APIKey = Depends(get_admin_key)
 ) -> None:
     processed_postings = []
     for posting in in_postings.data:
@@ -106,3 +106,10 @@ async def add_postings(
         processed_posting.update(posting.prediction.dict())
         processed_postings.append(processed_posting)
     await database.execute_many(postings.insert(), processed_postings)
+
+
+# @app.post("/correction", tags=["corrections"])
+# async def add_correction(
+#         correction: Correction, api_key: APIKey = Depends(get_api_key)
+# ):
+#     pass

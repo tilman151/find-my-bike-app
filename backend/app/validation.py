@@ -9,7 +9,7 @@ class Prediction(BaseModel):
     color: str
 
 
-class Posting(BaseModel):
+class IncomingPosting(BaseModel):
     title: str
     url: str
     image_url: str
@@ -18,6 +18,14 @@ class Posting(BaseModel):
     loc_query: str
     date: datetime.date
     prediction: Prediction
+
+
+class IncomingPostingList(BaseModel):
+    data: list[IncomingPosting]
+
+
+class Posting(IncomingPosting):
+    id: str
 
 
 class PostingList(BaseModel):

@@ -232,7 +232,7 @@ export default function Postings({marginTop}) {
                 <InfiniteScroll dataLength={postings.length} next={fetchMorePostings}
                                 hasMore={true} loader={<Loading/>}>
                     {postings.map((posting) => (
-                        <Posting key={posting.title} posting={posting}
+                        <Posting key={posting.id} posting={posting}
                                  prediction={posting.prediction}/>
                     ))}
                 </InfiniteScroll>
