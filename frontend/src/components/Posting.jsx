@@ -13,9 +13,11 @@ import {
     Spacer,
     Spinner,
     Stack,
+    Text,
 } from "@chakra-ui/react";
 import {SearchIcon} from "@chakra-ui/icons"
 import InfiniteScroll from "react-infinite-scroll-component";
+import moment from "moment";
 
 
 const PostingsContext = React.createContext({});
@@ -170,10 +172,13 @@ function Posting({posting, prediction}) {
                 <AspectRatio minW={["50px", "200px"]} ratio={4 / 3} mr="0.5rem">
                     <Image borderRadius='md' src={thumbnail_url} alt="Bike Thumbnail"/>
                 </AspectRatio>
-                <Stack spacing="0.5rem">
-                    <Heading size="md">{posting.title}</Heading>
+                <Stack spacing="0.5rem" pt="0.25rem">
+                    <Heading size="md" color="gray.800">{posting.title}</Heading>
                     <Prediction prediction={prediction}/>
-                    <Heading size="s">{posting.location}</Heading>
+                    <Heading size="s" color="gray.800">{posting.location}</Heading>
+                    <Text fontSize="s" color="gray.800">
+                        {moment(posting.date, "YYYY-MM-DD").format("LL")}
+                    </Text>
                 </Stack>
                 <Spacer/>
                 <FeedbackButtons/>
