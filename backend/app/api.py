@@ -10,7 +10,7 @@ from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
 from backend.app import security
 from backend.app.models import database, postings
 from backend.app.security import get_api_key
-from backend.app.validation import Posting, GetPostings
+from backend.app.validation import Posting, PostingList
 
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
@@ -73,13 +73,13 @@ async def get_documentation(api_key: APIKey = Depends(get_api_key)) -> HTMLRespo
     return response
 
 
-@app.get("/posting", tags=["postings"], response_model=GetPostings)
+@app.get("/posting", tags=["postings"], response_model=PostingList)
 async def get_postings(
     bike: Optional[str] = None,
     frame: Optional[str] = None,
     color: Optional[str] = None,
     api_key: APIKey = Depends(get_api_key),
-) -> GetPostings:
+) -> PostingList:
     where_clauses = []
     if bike is not None:
         where_clauses.append(postings.c.bike == bike)
@@ -91,4 +91,16 @@ async def get_postings(
     fetched_postings = await database.fetch_all(query)
     fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
 
-    return GetPostings(data=fetched_postings)
+    return PostingList(data=fetched_postings)
+
+
+@app.post("/posting", tags=["postings"])
+async def add_postings(
+    in_postings: PostingList, api_key: APIKey = Depends(get_api_key)
+) -> None:
+    processed_postings = []
+    for posting in in_postings.data:
+        processed_posting = posting.dict(exclude={"prediction"})
+        processed_posting.update(posting.prediction.dict())
+        processed_postings.append(processed_posting)
+    await database.execute_many(postings.insert(), processed_postings)

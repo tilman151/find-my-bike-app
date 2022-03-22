@@ -148,7 +148,7 @@ function Posting({posting, prediction}) {
              onClick={handleClick}
         >
             <Flex>
-                <Image h="100%" minH="100px" borderRadius='md' src={posting.img_url}
+                <Image h="100%" minH="100px" borderRadius='md' src={posting.image_url}
                        alt="Bike"/>
                 <Divider orientation="vertical" m="0.5rem"/>
                 <Stack spacing="0.5rem">
