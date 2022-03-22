@@ -78,6 +78,8 @@ async def get_postings(
     bike: Optional[str] = None,
     frame: Optional[str] = None,
     color: Optional[str] = None,
+    skip: Optional[int] = 0,
+    limit: Optional[int] = 10,
     api_key: APIKey = Depends(get_api_key),
 ) -> PostingList:
     where_clauses = []
@@ -87,7 +89,7 @@ async def get_postings(
         where_clauses.append(postings.c.frame == frame)
     elif color is not None:
         where_clauses.append(postings.c.color == color)
-    query = postings.select().where(*where_clauses)
+    query = postings.select().where(*where_clauses).offset(skip).limit(limit)
     fetched_postings = await database.fetch_all(query)
     fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
 
