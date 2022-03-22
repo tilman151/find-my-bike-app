@@ -5,8 +5,6 @@ import {
     Box,
     Button,
     Center,
-    Divider,
-    Flex,
     Heading,
     HStack,
     IconButton,
@@ -115,17 +113,17 @@ function FeedbackButtons() {
         event.stopPropagation()
     }
     const handleThisIsWrongClick = (event) => {
-        console.log("Clicked This is Wrong")
+        console.log("Clicked Report Error")
         event.stopPropagation()
     }
 
     return (
         <Center>
-            <Stack>
+            <Stack direction={['row', 'column']}>
                 <Button colorScheme="teal" variant="outline"
                         onClick={handleMyBikeClick}>That's my Bike</Button>
                 <Button colorScheme="red" variant="ghost"
-                        onClick={handleThisIsWrongClick}>This is Wrong</Button>
+                        onClick={handleThisIsWrongClick}>Report Error</Button>
             </Stack>
         </Center>
     )
@@ -155,19 +153,18 @@ function Posting({posting, prediction}) {
              }}
              onClick={handleClick}
         >
-            <Flex>
-                <AspectRatio w='200px' ratio={4 / 3}>
+            <Stack direction={['column', 'row']}>
+                <AspectRatio minW={["50px", "200px"]} ratio={4 / 3} mr="0.5rem">
                     <Image borderRadius='md' src={thumbnail_url} alt="Bike Thumbnail"/>
                 </AspectRatio>
-                <Divider orientation="vertical" m="0.5rem"/>
                 <Stack spacing="0.5rem">
-                    <Heading size="lg">{posting.title}</Heading>
+                    <Heading size="md">{posting.title}</Heading>
                     <Prediction prediction={prediction}/>
                     <Heading size="s">{posting.location}</Heading>
                 </Stack>
                 <Spacer/>
                 <FeedbackButtons/>
-            </Flex>
+            </Stack>
         </Box>
     )
 }
