@@ -9,7 +9,7 @@ from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
 
 from backend.app import security
 from backend.app.models import database, postings
-from backend.app.security import get_api_key
+from backend.app.security import get_api_key, get_admin_key
 from backend.app.validation import Posting, PostingList
 
 TITLE = "Find-My-Bike API"
@@ -98,7 +98,7 @@ async def get_postings(
 
 @app.post("/posting", tags=["postings"])
 async def add_postings(
-    in_postings: PostingList, api_key: APIKey = Depends(get_api_key)
+    in_postings: PostingList, api_key: APIKey = Depends(get_admin_key)
 ) -> None:
     processed_postings = []
     for posting in in_postings.data:
