@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import {apiPost} from "../utils";
 
-export function FeedbackButtons({posting_id, image_url}) {
+const FeedbackButtons = ({posting_id, image_url}) => {
     const {isOpen, onOpen, onClose} = useDisclosure()
 
     const handleMyBikeClick = (event) => {
@@ -124,3 +124,5 @@ const CorrectionModal = ({isOpen, onClose, image_url}) => {
         </Modal>
     )
 }
+
+export default FeedbackButtons

@@ -3,7 +3,7 @@ import {PostingsContext, QueryContext} from "./Contexts";
 import {HStack, IconButton, Select} from "@chakra-ui/react";
 import {SearchIcon} from "@chakra-ui/icons";
 
-export function SearchBar() {
+const SearchBar = () => {
     const {query, setQuery} = React.useContext(QueryContext)
     const {postings, fetchPostings} = React.useContext(PostingsContext)
 
@@ -70,3 +70,5 @@ export function SearchBar() {
         </form>
     )
 }
+
+export default SearchBar

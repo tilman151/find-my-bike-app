@@ -2,7 +2,7 @@ import React from "react";
 import {QueryContext} from "./Contexts";
 import {Badge, HStack} from "@chakra-ui/react";
 
-export function Prediction({prediction: {bike, frame, color}}) {
+const Prediction = ({prediction: {bike, frame, color}}) => {
     const {query, setQuery} = React.useContext(QueryContext)
 
     return (
@@ -19,3 +19,5 @@ export function Prediction({prediction: {bike, frame, color}}) {
         </HStack>
     )
 }
+
+export default Prediction

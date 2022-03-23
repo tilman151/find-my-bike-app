@@ -14,12 +14,12 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import moment from "moment";
 import {PostingsContext, QueryContext} from "./Contexts";
 import {apiGet} from "../utils";
-import {FeedbackButtons} from "./FeedbackButtons";
-import {SearchBar} from "./SearchBar";
-import {Prediction} from "./Prediction";
+import FeedbackButtons from "./FeedbackButtons";
+import SearchBar from "./SearchBar";
+import Prediction from "./Prediction";
 
 
-function Posting({posting, prediction}) {
+const Posting = ({posting, prediction}) => {
     const handleClick = (event) => {
         window.open(posting.url, '_blank').focus();
     }
@@ -71,7 +71,7 @@ const Loading = () => {
 }
 
 
-export default function Postings({marginTop}) {
+const Postings = ({marginTop}) => {
     const [postings, setPostings] = useState([])
     const [query, setQuery] = React.useState({bike: "", frame: "", color: ""})
     const fetchPostings = async (query, skip = null, limit = null) => {
@@ -108,3 +108,5 @@ export default function Postings({marginTop}) {
         </QueryContext.Provider>
     )
 }
+
+export default Postings
