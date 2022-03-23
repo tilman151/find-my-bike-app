@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {
     AspectRatio,
     Badge,
@@ -9,11 +9,19 @@ import {
     HStack,
     IconButton,
     Image,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
     Select,
     Spacer,
     Spinner,
     Stack,
     Text,
+    useDisclosure,
 } from "@chakra-ui/react";
 import {SearchIcon} from "@chakra-ui/icons"
 import InfiniteScroll from "react-infinite-scroll-component";
@@ -122,14 +130,26 @@ function Prediction({prediction: {bike, frame, color}}) {
 }
 
 
-function FeedbackButtons() {
+function FeedbackButtons({posting_id, image_url}) {
+    const {isOpen, onOpen, onClose} = useDisclosure()
+
     const handleMyBikeClick = (event) => {
         console.log("Clicked My Bike")
         event.stopPropagation()
     }
-    const handleThisIsWrongClick = (event) => {
-        console.log("Clicked Report Error")
+    const openCorrectionModal = (event) => {
+        console.log(`Clicked Report Error for posting ${posting_id}`)
+        onOpen()
         event.stopPropagation()
+    }
+
+    const submitCorrection = async (correction) => {
+        if (correction !== undefined) {
+            const payload = {posting_id: posting_id, correction: correction}
+            console.log(payload)
+            await apiPost("correction", payload)
+        }
+        onClose()
     }
 
     return (
@@ -137,10 +157,86 @@ function FeedbackButtons() {
             <Stack direction={['row', 'column']}>
                 <Button colorScheme="teal" variant="outline"
                         onClick={handleMyBikeClick}>That's my Bike</Button>
+                <CorrectionModal isOpen={isOpen} onClose={submitCorrection}
+                                 image_url={image_url}/>
                 <Button colorScheme="red" variant="ghost"
-                        onClick={handleThisIsWrongClick}>Report Error</Button>
+                        onClick={openCorrectionModal}>Report Error</Button>
             </Stack>
         </Center>
+    )
+}
+
+
+const CorrectionModal = ({isOpen, onClose, image_url}) => {
+    const bike_select = useRef()
+    const frame_select = useRef()
+    const color_select = useRef()
+
+    const submitOnClose = () => {
+        onClose({
+            "bike": bike_select.current.value,
+            "frame": frame_select.current.value,
+            "color": color_select.current.value
+        })
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay/>
+            <ModalContent>
+                <ModalHeader>Create a Correction</ModalHeader>
+                <ModalCloseButton/>
+                <ModalBody>
+                    <Image borderRadius='md' src={image_url} alt="Bike to correct"/>
+                    <Stack p="0.5rem">
+                        <Select
+                            ref={bike_select}
+                            variant="flushed"
+                            placeholder="Select Bike Type"
+                            aria-label="Select Bike Type"
+                        >
+                            <option value="bike">Bike</option>
+                            <option value="children">Children Bike</option>
+                            <option value="cargo">Cargo Bike</option>
+                        </Select>
+                        <Select
+                            ref={frame_select}
+                            variant="flushed"
+                            placeholder="Select Frame"
+                            aria-label="Select Frame"
+                        >
+                            <option value="diamond">Diamond</option>
+                            <option value="trapeze">Trapeze</option>
+                            <option value="swan_neck">Swan Neck</option>
+                            <option value="low_entry">Low Entry</option>
+                            <option value="x">X Frame</option>
+                            <option value="y">Y Frame</option>
+                        </Select>
+                        <Select
+                            ref={color_select}
+                            variant="flushed"
+                            placeholder="Select Color"
+                            aria-label="Select Color"
+                        >
+                            <option value="black">Black</option>
+                            <option value="white">White</option>
+                            <option value="gray">Gray</option>
+                            <option value="blue">Blue</option>
+                            <option value="red">Red</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="green">Green</option>
+                        </Select>/>
+                    </Stack>
+                </ModalBody>
+
+                <ModalFooter>
+                    <Button colorScheme='blue' mr={3} onClick={submitOnClose}>
+                        Submit
+                    </Button>
+                    <Button variant='ghost'>Cancel</Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
     )
 }
 
@@ -181,7 +277,7 @@ function Posting({posting, prediction}) {
                     </Text>
                 </Stack>
                 <Spacer/>
-                <FeedbackButtons/>
+                <FeedbackButtons posting_id={posting.id} image_url={posting.image_url}/>
             </Stack>
         </Box>
     )
@@ -197,11 +293,25 @@ const Loading = () => {
 }
 
 
-const apiCall = async (endpoint, query) => {
+const apiGet = async (endpoint, query) => {
     const headers = {access_token: process.env.REACT_APP_API_KEY}
     const queryString = toQueryString(query)
     const backendUrl = `${process.env.REACT_APP_BACKEND_URL}/${endpoint}?${queryString}`
     return await fetch(backendUrl, {headers})
+}
+
+
+const apiPost = async (endpoint, payload) => {
+    const headers = {
+        access_token: process.env.REACT_APP_API_KEY,
+        "Content-Type": "application/json"
+    }
+    const backendUrl = `${process.env.REACT_APP_BACKEND_URL}/${endpoint}`
+    return await fetch(backendUrl, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(payload)
+    })
 }
 
 
@@ -210,14 +320,14 @@ export default function Postings({marginTop}) {
     const [query, setQuery] = React.useState({bike: "", frame: "", color: ""})
     const fetchPostings = async (query, skip = null, limit = null) => {
         const extendedQuery = {...query, skip: skip, limit: limit}
-        const response = await apiCall("posting", extendedQuery)
+        const response = await apiGet("posting", extendedQuery)
         const fetched = await response.json()
         setPostings(fetched.data)
     }
 
     const fetchMorePostings = async () => {
         const extendedQuery = {...query, skip: postings.length, limit: null}
-        const response = await apiCall("posting", extendedQuery)
+        const response = await apiGet("posting", extendedQuery)
         const fetched = await response.json()
         setPostings(postings.concat(fetched.data))
     }
@@ -231,10 +341,12 @@ export default function Postings({marginTop}) {
                 <SearchBar/>
                 <InfiniteScroll dataLength={postings.length} next={fetchMorePostings}
                                 hasMore={true} loader={<Loading/>}>
-                    {postings.map((posting) => (
-                        <Posting key={posting.id} posting={posting}
-                                 prediction={posting.prediction}/>
-                    ))}
+                    <Stack spacing="0.5rem" pl="0.5rem" pr="0.5rem">
+                        {postings.map((posting) => (
+                            <Posting key={posting.id} posting={posting}
+                                     prediction={posting.prediction}/>
+                        ))}
+                    </Stack>
                 </InfiniteScroll>
             </PostingsContext.Provider>
         </QueryContext.Provider>
