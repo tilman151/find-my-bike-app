@@ -39,7 +39,7 @@ const FeedbackButtons = ({posting_id, image_url}) => {
     return (
         <Center>
             <Stack direction={['row', 'column']}>
-                <Button colorScheme="teal" variant="outline"
+                <Button colorScheme="teal" variant="outline" display="none"
                         onClick={handleMyBikeClick}>That's my Bike</Button>
                 <CorrectionModal isOpen={isOpen} onClose={submitCorrection}
                                  image_url={image_url}/>
