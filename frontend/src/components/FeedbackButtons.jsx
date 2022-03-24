@@ -65,11 +65,9 @@ const CorrectionModal = ({isOpen, onClose, image_url}) => {
         if (targetClass.includes("color-select")) {
             correction.current.color = event.target.value
         }
-        if (correction.current.bike && correction.current.frame && correction.current.color) {
-            submitButton.current.disabled = false
-        } else {
-            submitButton.current.disabled = true
-        }
+        submitButton.current.disabled = !(correction.current.bike &&
+            correction.current.frame &&
+            correction.current.color);
     }
 
     const submitOnClose = () => {

@@ -3,7 +3,7 @@ import React from "react";
 
 export const AspectSelects = ({onChange, direction}) => {
     return (
-        <Stack p="0.5rem" direction={direction}>
+        <Stack p="0.5rem" direction={direction} w="100%">
             <Select
                 className="bike-select"
                 variant="flushed"
