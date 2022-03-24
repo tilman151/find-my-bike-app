@@ -5,8 +5,8 @@ import {SearchIcon} from "@chakra-ui/icons";
 import {AspectSelects} from "./AspectSelects";
 
 const SearchBar = () => {
-    const {query, setQuery} = React.useContext(QueryContext)
-    const {postings, fetchPostings} = React.useContext(PostingsContext)
+    const [query, setQuery] = React.useContext(QueryContext)
+    const [, fetchPostings] = React.useContext(PostingsContext)
 
     const updateQuery = (event) => {
         const targetClass = event.target.className

@@ -92,8 +92,8 @@ const Postings = ({marginTop}) => {
         fetchPostings({bike: "", frame: "", color: ""})
     }, [])
     return (
-        <QueryContext.Provider value={{query, setQuery}}>
-            <PostingsContext.Provider value={{postings, fetchPostings}}>
+        <QueryContext.Provider value={[query, setQuery]}>
+            <PostingsContext.Provider value={[postings, fetchPostings]}>
                 <SearchBar/>
                 <InfiniteScroll dataLength={postings.length} next={fetchMorePostings}
                                 hasMore={true} loader={<Loading/>}>
