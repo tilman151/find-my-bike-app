@@ -10,11 +10,11 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Select,
     Stack,
     useDisclosure
 } from "@chakra-ui/react";
 import {apiPost} from "../utils";
+import {AspectSelects} from "./AspectSelects";
 
 const FeedbackButtons = ({posting_id, image_url}) => {
     const {isOpen, onOpen, onClose} = useDisclosure()
@@ -24,7 +24,6 @@ const FeedbackButtons = ({posting_id, image_url}) => {
         event.stopPropagation()
     }
     const openCorrectionModal = (event) => {
-        console.log(`Clicked Report Error for posting ${posting_id}`)
         onOpen()
         event.stopPropagation()
     }
@@ -32,7 +31,6 @@ const FeedbackButtons = ({posting_id, image_url}) => {
     const submitCorrection = async (correction) => {
         if (correction !== undefined) {
             const payload = {posting_id: posting_id, correction: correction}
-            console.log(payload)
             await apiPost("correction", payload)
         }
         onClose()
@@ -53,16 +51,29 @@ const FeedbackButtons = ({posting_id, image_url}) => {
 }
 
 const CorrectionModal = ({isOpen, onClose, image_url}) => {
-    const bike_select = useRef()
-    const frame_select = useRef()
-    const color_select = useRef()
+    const correction = useRef({bike: "", frame: "", color: ""})
+    const submitButton = useRef()
+
+    const selectOnChange = (event) => {
+        const targetClass = event.target.className
+        if (targetClass.includes("bike-select")) {
+            correction.current.bike = event.target.value
+        }
+        if (targetClass.includes("frame-select")) {
+            correction.current.frame = event.target.value
+        }
+        if (targetClass.includes("color-select")) {
+            correction.current.color = event.target.value
+        }
+        if (correction.current.bike && correction.current.frame && correction.current.color) {
+            submitButton.current.disabled = false
+        } else {
+            submitButton.current.disabled = true
+        }
+    }
 
     const submitOnClose = () => {
-        onClose({
-            "bike": bike_select.current.value,
-            "frame": frame_select.current.value,
-            "color": color_select.current.value
-        })
+        onClose(correction.current)
     }
 
     return (
@@ -72,53 +83,16 @@ const CorrectionModal = ({isOpen, onClose, image_url}) => {
                 <ModalHeader>Create a Correction</ModalHeader>
                 <ModalCloseButton/>
                 <ModalBody>
-                    <Image borderRadius='md' src={image_url} alt="Bike to correct"/>
-                    <Stack p="0.5rem">
-                        <Select
-                            ref={bike_select}
-                            variant="flushed"
-                            placeholder="Select Bike Type"
-                            aria-label="Select Bike Type"
-                        >
-                            <option value="bike">Bike</option>
-                            <option value="children">Children Bike</option>
-                            <option value="cargo">Cargo Bike</option>
-                        </Select>
-                        <Select
-                            ref={frame_select}
-                            variant="flushed"
-                            placeholder="Select Frame"
-                            aria-label="Select Frame"
-                        >
-                            <option value="diamond">Diamond</option>
-                            <option value="trapeze">Trapeze</option>
-                            <option value="swan_neck">Swan Neck</option>
-                            <option value="low_entry">Low Entry</option>
-                            <option value="x">X Frame</option>
-                            <option value="y">Y Frame</option>
-                        </Select>
-                        <Select
-                            ref={color_select}
-                            variant="flushed"
-                            placeholder="Select Color"
-                            aria-label="Select Color"
-                        >
-                            <option value="black">Black</option>
-                            <option value="white">White</option>
-                            <option value="gray">Gray</option>
-                            <option value="blue">Blue</option>
-                            <option value="red">Red</option>
-                            <option value="yellow">Yellow</option>
-                            <option value="green">Green</option>
-                        </Select>/>
-                    </Stack>
+                    <Image borderRadius='md' mb="1rem" src={image_url}
+                           alt="Bike to correct"/>
+                    <AspectSelects onChange={selectOnChange} direction="column"/>
                 </ModalBody>
 
                 <ModalFooter>
-                    <Button colorScheme='blue' mr={3} onClick={submitOnClose}>
+                    <Button ref={submitButton} disabled="true" colorScheme='blue' mr={3}
+                            onClick={submitOnClose}>
                         Submit
                     </Button>
-                    <Button variant='ghost'>Cancel</Button>
                 </ModalFooter>
             </ModalContent>
         </Modal>
