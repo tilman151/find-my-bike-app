@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useRef, useState} from "react";
 import {
     Button,
     Center,
@@ -51,27 +51,24 @@ const FeedbackButtons = ({posting_id, image_url}) => {
 }
 
 const CorrectionModal = ({isOpen, onClose, image_url}) => {
-    const correction = useRef({bike: "", frame: "", color: ""})
+    const [correction, setCorrection] = useState({bike: "", frame: "", color: ""})
     const submitButton = useRef()
 
     const selectOnChange = (event) => {
         const targetClass = event.target.className
         if (targetClass.includes("bike-select")) {
-            correction.current.bike = event.target.value
+            setCorrection({...correction, bike: event.target.value})
         }
         if (targetClass.includes("frame-select")) {
-            correction.current.frame = event.target.value
+            setCorrection({...correction, frame: event.target.value})
         }
         if (targetClass.includes("color-select")) {
-            correction.current.color = event.target.value
+            setCorrection({...correction, color: event.target.value})
         }
-        submitButton.current.disabled = !(correction.current.bike &&
-            correction.current.frame &&
-            correction.current.color);
     }
 
     const submitOnClose = () => {
-        onClose(correction.current)
+        onClose(correction)
     }
 
     return (
@@ -87,7 +84,9 @@ const CorrectionModal = ({isOpen, onClose, image_url}) => {
                 </ModalBody>
 
                 <ModalFooter>
-                    <Button ref={submitButton} disabled="true" colorScheme='blue' mr={3}
+                    <Button ref={submitButton}
+                            isDisabled={!(correction.bike && correction.frame && correction.color)}
+                            colorScheme='blue' mr={3}
                             onClick={submitOnClose}>
                         Submit
                     </Button>
