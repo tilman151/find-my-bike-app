@@ -27,8 +27,8 @@ const SearchBar = () => {
     }
 
     return (
-        <Flex>
-            <AspectSelects onChange={updateQuery} direction="row"/>
+        <Flex direction={["column", "row"]}>
+            <AspectSelects onChange={updateQuery} direction={["column", "row"]}/>
             <IconButton m="0.5rem" aria-label='Search Postings' icon={<SearchIcon/>}
                         onClick={handleSubmit}/>
         </Flex>
