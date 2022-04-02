@@ -91,7 +91,13 @@ async def get_postings(
         where_clauses.append(models.postings.c.frame == frame)
     if color is not None:
         where_clauses.append(models.postings.c.color == color)
-    query = models.postings.select().where(*where_clauses).offset(skip).limit(limit)
+    query = (
+        models.postings.select()
+        .where(*where_clauses)
+        .order_by(models.postings.c.date.desc())
+        .offset(skip)
+        .limit(limit)
+    )
     fetched_postings = await models.database.fetch_all(query)
     fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
 
