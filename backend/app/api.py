@@ -95,6 +95,7 @@ async def get_postings(
         models.postings.select()
         .where(*where_clauses)
         .order_by(models.postings.c.date.desc())
+        .order_by(models.postings.c.date.desc())
         .offset(skip)
         .limit(limit)
     )

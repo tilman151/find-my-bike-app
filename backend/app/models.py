@@ -21,7 +21,7 @@ postings = sa.Table(
     sa.Column("location", sa.String),
     sa.Column("query", sa.String),
     sa.Column("loc_query", sa.String),
-    sa.Column("date", sa.Date),
+    sa.Column("date", sa.DateTime),
     sa.Column("bike", sa.String),
     sa.Column("frame", sa.String),
     sa.Column("color", sa.String),

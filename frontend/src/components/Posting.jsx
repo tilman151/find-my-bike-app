@@ -51,7 +51,7 @@ const Posting = ({posting, prediction}) => {
                     <Prediction prediction={prediction}/>
                     <Heading size="s" color="gray.800">{posting.location}</Heading>
                     <Text fontSize="s" color="gray.800">
-                        {moment(posting.date, "YYYY-MM-DD").format("LL")}
+                        {moment(posting.date).format("LLL")}
                     </Text>
                 </Stack>
                 <Spacer/>

@@ -16,7 +16,7 @@ class IncomingPosting(BaseModel):
     location: str
     query: str
     loc_query: str
-    date: datetime.date
+    date: datetime.datetime
     prediction: Prediction
 
 
