@@ -37,12 +37,12 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup() -> None:
-    await models.database.connect()
+    await models.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
-    await models.database.disconnect()
+    await models.disconnect()
 
 
 @app.get("/", tags=["root"])

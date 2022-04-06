@@ -1,13 +1,30 @@
 import os
+from typing import Optional
 
 import databases
 import sqlalchemy as sa
 
-DATABASE_URL = os.environ["DATABASE_URL"]
-if "postgresql" not in DATABASE_URL:
-    db_url = DATABASE_URL.replace("postgres", "postgresql")
+database: Optional[databases.Database] = None  # Populated by connect()
 
-database = databases.Database(DATABASE_URL)
+
+async def connect():
+    url = os.environ["DATABASE_URL"]
+    if "postgresql" not in url:
+        db_url = url.replace("postgres", "postgresql")
+
+    global database
+    database = databases.Database(url)
+    await database.connect()
+
+
+async def disconnect():
+    global database
+    if isinstance(database, databases.Database):
+        await database.disconnect()
+        database = None
+    else:
+        raise RuntimeError("Database was not connected")
+
 
 metadata = sa.MetaData()
 
@@ -36,3 +53,16 @@ corrections = sa.Table(
     sa.Column("frame", sa.String),
     sa.Column("color", sa.String),
 )
+
+
+async def check_row_count():
+    posting_count = await _get_row_count(postings)
+    correction_count = await _get_row_count(corrections)
+    row_limit = int(os.environ["ROW_LIMIT"])
+    free_rows = row_limit - (posting_count + correction_count + 1)  # one for alembic
+
+    return free_rows
+
+
+async def _get_row_count(table):
+    return await database.execute(sa.select(sa.func.count()).select_from(table))
