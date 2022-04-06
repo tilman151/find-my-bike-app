@@ -35,3 +35,10 @@ class PostingList(BaseModel):
 class Correction(BaseModel):
     posting_id: int
     correction: Prediction
+
+
+def flatten(entity: BaseModel, nested: str) -> dict:
+    entity_dict = entity.dict(exclude={nested})
+    entity_dict.update(getattr(entity, nested).dict())
+
+    return entity_dict

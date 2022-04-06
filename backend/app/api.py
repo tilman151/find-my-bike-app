@@ -1,6 +1,5 @@
 from typing import Optional
 
-from asyncpg import ForeignKeyViolationError
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -12,7 +11,13 @@ from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_201_CREATED
 from backend.app import models
 from backend.app import security
 from backend.app.security import get_api_key, get_admin_key
-from backend.app.validation import Posting, PostingList, IncomingPostingList, Correction
+from backend.app.validation import (
+    Posting,
+    PostingList,
+    IncomingPostingList,
+    Correction,
+    flatten,
+)
 
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
@@ -84,49 +89,31 @@ async def get_postings(
     limit: Optional[int] = 10,
     api_key: APIKey = Depends(get_api_key),
 ) -> PostingList:
-    where_clauses = []
-    if bike is not None:
-        where_clauses.append(models.postings.c.bike == bike)
-    if frame is not None:
-        where_clauses.append(models.postings.c.frame == frame)
-    if color is not None:
-        where_clauses.append(models.postings.c.color == color)
-    query = (
-        models.postings.select()
-        .where(*where_clauses)
-        .order_by(models.postings.c.date.desc())
-        .order_by(models.postings.c.date.desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    fetched_postings = await models.database.fetch_all(query)
-    fetched_postings = [Posting(**{**p, "prediction": {**p}}) for p in fetched_postings]
+    postings = await models.query_postings(bike, color, frame, limit, skip)
+    postings = [Posting(**{**p, "prediction": {**p}}) for p in postings]
 
-    return PostingList(data=fetched_postings)
+    return PostingList(data=postings)
 
 
 @app.post("/posting", tags=["postings"], status_code=HTTP_201_CREATED)
 async def add_postings(
     in_postings: IncomingPostingList, api_key: APIKey = Depends(get_admin_key)
 ) -> None:
-    processed_postings = []
-    for posting in in_postings.data:
-        processed_posting = posting.dict(exclude={"prediction"})
-        processed_posting.update(posting.prediction.dict())
-        processed_postings.append(processed_posting)
-    await models.database.execute_many(models.postings.insert(), processed_postings)
+    processed_postings = [
+        flatten(post, nested="prediction") for post in in_postings.data
+    ]
+    await models.add_postings(processed_postings)
 
 
 @app.post("/correction", tags=["corrections"], status_code=HTTP_201_CREATED)
 async def add_correction(
     correction: Correction, api_key: APIKey = Depends(get_api_key)
 ):
-    processed_correction = correction.dict(exclude={"correction"})
-    processed_correction.update(correction.correction)
+    processed_correction = flatten(correction, nested="correction")
     try:
-        await models.database.execute(models.corrections.insert(), processed_correction)
-    except ForeignKeyViolationError:
+        await models.add_corrections(processed_correction)
+    except RuntimeError:
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Posting with ID {correction.posting_id} not found",
+            detail=f"Posting ID not found",
         )
