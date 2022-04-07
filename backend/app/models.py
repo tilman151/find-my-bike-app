@@ -3,7 +3,6 @@ from typing import Optional
 
 import databases
 import sqlalchemy as sa
-from asyncpg import ForeignKeyViolationError
 
 database: Optional[databases.Database] = None  # Populated by connect()
 
@@ -49,24 +48,20 @@ corrections = sa.Table(
     "corrections",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("posting_id", sa.ForeignKey("postings.id"), nullable=False),
+    sa.Column(
+        "posting_id", sa.ForeignKey("postings.id", ondelete="CASCADE"), nullable=False
+    ),
     sa.Column("bike", sa.String),
     sa.Column("frame", sa.String),
     sa.Column("color", sa.String),
 )
 
 
-async def check_row_count():
-    posting_count = await _get_row_count(postings)
-    correction_count = await _get_row_count(corrections)
-    row_limit = int(os.environ["ROW_LIMIT"])
-    free_rows = row_limit - (posting_count + correction_count + 1)  # one for alembic
-
-    return free_rows
-
-
-async def _get_row_count(table):
-    return await database.execute(sa.select(sa.func.count()).select_from(table))
+async def clear_old_postings(num: int):
+    oldest_postings = (
+        sa.select(postings.c.id).order_by(postings.c.date).limit(num).subquery()
+    )
+    await database.execute(postings.delete(postings.c.id.in_(oldest_postings)))
 
 
 async def query_postings(bike, color, frame, limit, skip):
@@ -81,7 +76,6 @@ async def query_postings(bike, color, frame, limit, skip):
         postings.select()
         .where(*where_clauses)
         .order_by(postings.c.date.desc())
-        .order_by(postings.c.date.desc())
         .offset(skip)
         .limit(limit)
     )
@@ -91,13 +85,38 @@ async def query_postings(bike, color, frame, limit, skip):
 
 
 async def add_postings(postings_to_add):
+    await _free_rows_over_limit(len(postings_to_add))
     await database.execute_many(postings.insert(), postings_to_add)
 
 
 async def add_corrections(correction_to_add):
-    try:
-        await database.execute(corrections.insert(), correction_to_add)
-    except ForeignKeyViolationError:
+    corrected_posting = await database.fetch_one(
+        postings.select(postings.c.id == correction_to_add["posting_id"])
+    )
+    if corrected_posting is None:
         raise RuntimeError(
             f"Posting with ID {correction_to_add['posting_id']} not found"
         )
+    else:
+        await _free_rows_over_limit(1)
+        await database.execute(corrections.insert(), correction_to_add)
+
+
+async def _free_rows_over_limit(num_rows_added: int):
+    free_rows = await _get_free_rows()
+    free_after_add = free_rows - num_rows_added
+    if free_after_add < 0:
+        await clear_old_postings(-free_after_add)
+
+
+async def _get_free_rows():
+    posting_count = await _get_row_count(postings)
+    correction_count = await _get_row_count(corrections)
+    row_limit = int(os.environ["ROW_LIMIT"])
+    free_rows = row_limit - (posting_count + correction_count + 1)  # one for alembic
+
+    return free_rows
+
+
+async def _get_row_count(table):
+    return await database.execute(sa.select(sa.func.count()).select_from(table))
