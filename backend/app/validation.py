@@ -32,9 +32,21 @@ class PostingList(BaseModel):
     data: list[Posting]
 
 
-class Correction(BaseModel):
+class IncomingCorrection(BaseModel):
     posting_id: int
     correction: Prediction
+
+
+class Correction(IncomingCorrection):
+    id: int
+
+
+class CorrectedPosting(Posting):
+    corrections: list[Prediction]
+
+
+class CorrectedPostingList(BaseModel):
+    data: list[CorrectedPosting]
 
 
 def flatten(entity: BaseModel, nested: str) -> dict:

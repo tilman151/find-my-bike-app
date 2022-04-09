@@ -6,7 +6,7 @@ import pytest
 import pytest_asyncio
 import sqlalchemy as sa
 
-from backend.app import models
+from backend.app import models, validation
 
 DATABASE_URL = "postgresql://backend@/test-my-bike"
 
@@ -69,13 +69,23 @@ def _insert_postings(conn):
 
 
 def _insert_corrections(conn):
-    stmt = models.corrections.insert().values(
-        posting_id=1,
-        bike="",
-        frame="",
-        color="",
-    )
-    conn.execute(stmt)
+    for _ in range(3):
+        stmt = models.corrections.insert().values(
+            posting_id=1,
+            bike="",
+            frame="",
+            color="",
+        )
+        conn.execute(stmt)
+
+    for _ in range(2):
+        stmt = models.corrections.insert().values(
+            posting_id=5,
+            bike="",
+            frame="",
+            color="",
+        )
+        conn.execute(stmt)
 
 
 @pytest_asyncio.fixture
@@ -102,7 +112,7 @@ async def test_connect_disconnect():
 @pytest.mark.asyncio
 async def test_row_limit(connect_db, dummy_data):
     count = await models._get_free_rows()
-    assert count == 988
+    assert count == 984
 
 
 @pytest.mark.asyncio
@@ -121,7 +131,7 @@ async def test_clear_old_postings(connect_db, dummy_data):
 
 @pytest.mark.asyncio
 async def test_add_postings_over_limit(connect_db, dummy_data, monkeypatch):
-    monkeypatch.setenv("ROW_LIMIT", "12")
+    monkeypatch.setenv("ROW_LIMIT", "16")
     await models.add_postings(
         [
             {
@@ -184,7 +194,7 @@ async def test_add_postings_under_limit(connect_db, dummy_data):
 
 @pytest.mark.asyncio
 async def test_add_correction_over_limit(connect_db, dummy_data, monkeypatch):
-    monkeypatch.setenv("ROW_LIMIT", "12")
+    monkeypatch.setenv("ROW_LIMIT", "16")
     await models.add_corrections(
         {
             "posting_id": 10,
@@ -200,6 +210,17 @@ async def test_add_correction_over_limit(connect_db, dummy_data, monkeypatch):
     )
     assert posting_expected_deleted is None
 
-    # Correction was inserted the one associated with the old post deleted
+    # Correction was inserted, the one associated with the old post deleted
     corrections = await models.database.fetch_all(models.corrections.select())
-    assert len(corrections) == 1
+    assert not any(c["posting_id"] == 0 for c in corrections)
+    assert any(c["posting_id"] == 10 for c in corrections)
+
+
+@pytest.mark.asyncio
+async def test_get_corrections(connect_db, dummy_data):
+    corrections = await models.get_corrections()
+
+    assert len(corrections) == 2
+    assert all(isinstance(c, validation.CorrectedPosting) for c in corrections)
+    assert len(corrections[0].corrections) == 3
+    assert len(corrections[1].corrections) == 2

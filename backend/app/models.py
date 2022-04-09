@@ -4,6 +4,8 @@ from typing import Optional
 import databases
 import sqlalchemy as sa
 
+from backend.app.validation import CorrectedPosting
+
 database: Optional[databases.Database] = None  # Populated by connect()
 
 
@@ -87,6 +89,24 @@ async def query_postings(bike, color, frame, limit, skip):
 async def add_postings(postings_to_add):
     await _free_rows_over_limit(len(postings_to_add))
     await database.execute_many(postings.insert(), postings_to_add)
+
+
+async def get_corrections():
+    corrected_ids = await database.fetch_all(
+        sa.select(sa.distinct(corrections.c.posting_id))
+    )
+    corrected_postings = await database.fetch_all(
+        postings.select(postings.c.id.in_([c["posting_id"] for c in corrected_ids]))
+    )
+    for i, posting in enumerate(corrected_postings):
+        corr = await database.fetch_all(
+            corrections.select(corrections.c.posting_id == posting["id"])
+        )
+        corrected_postings[i] = CorrectedPosting(
+            **{**posting, "prediction": {**posting}, "corrections": corr}
+        )
+
+    return corrected_postings
 
 
 async def add_corrections(correction_to_add):

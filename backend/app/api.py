@@ -15,7 +15,8 @@ from backend.app.validation import (
     Posting,
     PostingList,
     IncomingPostingList,
-    Correction,
+    IncomingCorrection,
+    CorrectedPostingList,
     flatten,
 )
 
@@ -105,9 +106,16 @@ async def add_postings(
     await models.add_postings(processed_postings)
 
 
+@app.get("/correction", tags=["corrections"], response_model=CorrectedPostingList)
+async def get_corrections(api_key: APIKey = Depends(get_admin_key)):
+    corrections = await models.get_corrections()
+
+    return CorrectedPostingList(data=corrections)
+
+
 @app.post("/correction", tags=["corrections"], status_code=HTTP_201_CREATED)
 async def add_correction(
-    correction: Correction, api_key: APIKey = Depends(get_api_key)
+    correction: IncomingCorrection, api_key: APIKey = Depends(get_api_key)
 ):
     processed_correction = flatten(correction, nested="correction")
     try:
