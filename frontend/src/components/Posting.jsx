@@ -19,7 +19,7 @@ import SearchBar from "./SearchBar";
 import Prediction from "./Prediction";
 
 
-const Posting = ({posting, prediction}) => {
+const Posting = ({posting, prediction, lazy}) => {
     const handleClick = (event) => {
         window.open(posting.url, '_blank').focus();
     }
@@ -45,7 +45,7 @@ const Posting = ({posting, prediction}) => {
             <Stack direction={['column', 'row']}>
                 <AspectRatio minW={["50px", "200px"]} ratio={4 / 3} mr="0.5rem">
                     <Image borderRadius='md' src={thumbnail_url} alt="Bike Thumbnail"
-                           loading="lazy"/>
+                           loading={lazy ? "eager" : "lazy"}/>
                 </AspectRatio>
                 <Stack spacing="0.5rem" pt="0.25rem">
                     <Heading size="md" color="gray.800">{posting.title}</Heading>
@@ -99,9 +99,9 @@ const Postings = ({marginTop}) => {
                 <InfiniteScroll dataLength={postings.length} next={fetchMorePostings}
                                 hasMore={true} loader={<Loading/>}>
                     <Stack spacing="0.5rem" pl="0.5rem" pr="0.5rem">
-                        {postings.map((posting) => (
+                        {postings.map((posting, index) => (
                             <Posting key={posting.id} posting={posting}
-                                     prediction={posting.prediction}/>
+                                     prediction={posting.prediction} lazy={index === 0}/>
                         ))}
                     </Stack>
                 </InfiniteScroll>
