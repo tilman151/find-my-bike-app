@@ -44,7 +44,8 @@ const Posting = ({posting, prediction}) => {
         >
             <Stack direction={['column', 'row']}>
                 <AspectRatio minW={["50px", "200px"]} ratio={4 / 3} mr="0.5rem">
-                    <Image borderRadius='md' src={thumbnail_url} alt="Bike Thumbnail"/>
+                    <Image borderRadius='md' src={thumbnail_url} alt="Bike Thumbnail"
+                           loading="lazy"/>
                 </AspectRatio>
                 <Stack spacing="0.5rem" pt="0.25rem">
                     <Heading size="md" color="gray.800">{posting.title}</Heading>
