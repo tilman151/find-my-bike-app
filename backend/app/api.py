@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -31,6 +32,8 @@ origins = [
     "https://find-my-bike.netlify.app",
     "https://find-my-bike.krokotsch.eu",
 ]
+if "ORIGIN" in os.environ:
+    origins.append(os.environ["ORIGIN"])
 
 app.add_middleware(
     CORSMiddleware,
