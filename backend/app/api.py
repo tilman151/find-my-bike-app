@@ -78,7 +78,9 @@ async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)) -> JSONR
 
 @app.get("/docs", tags=["documentation"])
 async def get_documentation(api_key: APIKey = Depends(get_api_key)) -> HTMLResponse:
-    response = get_swagger_ui_html(openapi_url="/openapi.json", title="docs")
+    response = get_swagger_ui_html(
+        openapi_url=f"/openapi.json?access_token={api_key}", title="docs"
+    )
     await security.set_api_key_cookie(response, api_key)
 
     return response
