@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -77,9 +77,12 @@ async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)) -> JSONR
 
 
 @app.get("/docs", tags=["documentation"])
-async def get_documentation(api_key: APIKey = Depends(get_api_key)) -> HTMLResponse:
+async def get_documentation(
+    request: Request, api_key: APIKey = Depends(get_api_key)
+) -> HTMLResponse:
+    root_path = request.get("root_path")
     response = get_swagger_ui_html(
-        openapi_url=f"/openapi.json?access_token={api_key}", title="docs"
+        openapi_url=f"{root_path}/openapi.json?access_token={api_key}", title="docs"
     )
     await security.set_api_key_cookie(response, api_key)
 
