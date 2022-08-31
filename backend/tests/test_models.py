@@ -35,6 +35,7 @@ def async_debug(monkeypatch):
 def db_env(async_debug, monkeypatch):
     monkeypatch.setenv("ROW_LIMIT", "1000")
     monkeypatch.setenv("DATABASE_URL", DATABASE_URL)
+    monkeypatch.setenv("MIN_DATABASE_CONNECTIONS", 1)
 
 
 @pytest.fixture()

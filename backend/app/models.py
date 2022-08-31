@@ -11,11 +11,11 @@ database: Optional[databases.Database] = None  # Populated by connect()
 
 async def connect():
     url = os.environ["DATABASE_URL"]
-    if "postgresql" not in url:
-        db_url = url.replace("postgres", "postgresql")
+    min_size = int(os.environ["MIN_DATABASE_CONNECTIONS"])
+    max_size = max(10, min_size)
 
     global database
-    database = databases.Database(url)
+    database = databases.Database(url, min_size=min_size, max_size=max_size)
     await database.connect()
 
 
