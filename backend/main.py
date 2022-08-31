@@ -2,7 +2,6 @@ import os
 
 import uvicorn
 
-
 if __name__ == "__main__":
     if "PORT" in os.environ:
         port = int(os.environ["PORT"])
@@ -10,4 +9,4 @@ if __name__ == "__main__":
     else:
         port = 8000
         reload = True
-    uvicorn.run("app.api:app", host="0.0.0.0", port=port, reload=reload)
+    uvicorn.run("backend.app.api:app", host="0.0.0.0", port=port, reload=reload)
