@@ -55,36 +55,6 @@ async def root() -> dict[str, str]:
     return {"message": "This is the Find-My-Bike API"}
 
 
-# @app.get("/logout")
-# async def logout_and_remove_cookie() -> RedirectResponse:
-#     response = RedirectResponse(url="/")
-#     await security.delete_api_key_cookie(response)
-#
-#     return response
-
-
-# @app.get("/openapi.json", tags=["documentation"])
-# async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)) -> JSONResponse:
-#     response = JSONResponse(
-#         get_openapi(title=TITLE, version=VERSION, routes=app.routes)
-#     )
-#
-#     return response
-#
-#
-# @app.get("/docs", tags=["documentation"])
-# async def get_documentation(
-#     request: Request, api_key: APIKey = Depends(get_api_key)
-# ) -> HTMLResponse:
-#     root_path = request.get("root_path")
-#     response = get_swagger_ui_html(
-#         openapi_url=f"{root_path}/openapi.json?access_token={api_key}", title="docs"
-#     )
-#     await security.set_api_key_cookie(response, api_key)
-#
-#     return response
-
-
 @app.get("/posting", tags=["postings"], response_model=PostingList)
 async def get_postings(
     bike: Optional[str] = None,
