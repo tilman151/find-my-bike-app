@@ -1,16 +1,12 @@
 import os
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.openapi.utils import get_openapi
 from fastapi.security.api_key import APIKey
-from starlette.responses import RedirectResponse, JSONResponse, HTMLResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_201_CREATED
 
 from backend.app import models
-from backend.app import security
 from backend.app.security import get_api_key, get_admin_key
 from backend.app.validation import (
     Posting,
@@ -24,7 +20,7 @@ from backend.app.validation import (
 TITLE = "Find-My-Bike API"
 VERSION = "0.1.0"
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI()
 
 origins = [
     "http://localhost:3000",
@@ -59,34 +55,34 @@ async def root() -> dict[str, str]:
     return {"message": "This is the Find-My-Bike API"}
 
 
-@app.get("/logout")
-async def logout_and_remove_cookie() -> RedirectResponse:
-    response = RedirectResponse(url="/")
-    await security.delete_api_key_cookie(response)
-
-    return response
-
-
-@app.get("/openapi.json", tags=["documentation"])
-async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)) -> JSONResponse:
-    response = JSONResponse(
-        get_openapi(title=TITLE, version=VERSION, routes=app.routes)
-    )
-
-    return response
+# @app.get("/logout")
+# async def logout_and_remove_cookie() -> RedirectResponse:
+#     response = RedirectResponse(url="/")
+#     await security.delete_api_key_cookie(response)
+#
+#     return response
 
 
-@app.get("/docs", tags=["documentation"])
-async def get_documentation(
-    request: Request, api_key: APIKey = Depends(get_api_key)
-) -> HTMLResponse:
-    root_path = request.get("root_path")
-    response = get_swagger_ui_html(
-        openapi_url=f"{root_path}/openapi.json?access_token={api_key}", title="docs"
-    )
-    await security.set_api_key_cookie(response, api_key)
-
-    return response
+# @app.get("/openapi.json", tags=["documentation"])
+# async def get_open_api_endpoint(api_key: APIKey = Depends(get_api_key)) -> JSONResponse:
+#     response = JSONResponse(
+#         get_openapi(title=TITLE, version=VERSION, routes=app.routes)
+#     )
+#
+#     return response
+#
+#
+# @app.get("/docs", tags=["documentation"])
+# async def get_documentation(
+#     request: Request, api_key: APIKey = Depends(get_api_key)
+# ) -> HTMLResponse:
+#     root_path = request.get("root_path")
+#     response = get_swagger_ui_html(
+#         openapi_url=f"{root_path}/openapi.json?access_token={api_key}", title="docs"
+#     )
+#     await security.set_api_key_cookie(response, api_key)
+#
+#     return response
 
 
 @app.get("/posting", tags=["postings"], response_model=PostingList)
