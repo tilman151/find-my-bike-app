@@ -9,9 +9,7 @@ import BackToTopButton from "./components/BackToTopButton";
 function App() {
     return (
         <ChakraProvider>
-            <Header/>
-            <BackToTopButton/>
-            <Postings/>
+            <p>Find-My-Bike is under maintenance.</p>
         </ChakraProvider>
     )
 }
